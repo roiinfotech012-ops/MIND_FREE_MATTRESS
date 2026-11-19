@@ -103,12 +103,12 @@ const CategoryProductRow: React.FC<CategoryProductRowProps> = ({
         {/* Left on Mobile / Top on Tablet & Desktop: Clean Product Image with Glassmorphic Top-Left Pill Badge */}
         <div
           onClick={() => onSelectProduct(product.slug)}
-          className="relative w-[42%] sm:w-full min-h-[150px] sm:min-h-0 sm:aspect-[4/3.8] shrink-0 bg-white overflow-hidden cursor-pointer flex items-center justify-center"
+          className="relative w-[42%] sm:w-full min-h-[150px] sm:min-h-0 sm:aspect-[4/3.8] shrink-0 bg-white overflow-hidden cursor-pointer flex items-center justify-center p-1.5"
         >
           <img
             src={imageSrc}
             alt={product.name}
-            className="w-full h-full object-contain p-1.5"
+            className="max-w-full max-h-full w-auto h-auto object-contain"
           />
 
           {/* Subtle Luxury Gradient Vignette on Hover */}

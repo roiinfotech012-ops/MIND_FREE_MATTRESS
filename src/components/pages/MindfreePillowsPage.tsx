@@ -154,11 +154,11 @@ export const MindfreePillowsPage: React.FC = () => {
                   className="bg-white/95 backdrop-blur-md rounded-2xl sm:rounded-3xl border border-[#E2E8F0] hover:border-[#E3262E]/50 shadow-[0_4px_14px_rgba(10,37,64,0.04)] hover:shadow-[0_20px_44px_rgba(10,46,115,0.12)] sm:hover:-translate-y-1.5 transition-all duration-300 flex flex-row overflow-hidden group h-full"
                 >
                 {/* Left Image */}
-                <div className="relative w-[42%] sm:w-2/5 bg-white overflow-hidden shrink-0 flex items-center justify-center">
+                <div className="relative w-[42%] sm:w-2/5 bg-white overflow-hidden shrink-0 flex items-center justify-center p-2">
                   <img
                     src={pillow.image}
                     alt={pillow.name}
-                    className="w-full h-full object-contain p-2"
+                    className="max-w-full max-h-full w-auto h-auto object-contain"
                     onError={(e) => {
                       (e.currentTarget as HTMLImageElement).src = '/images/type_ortho.png';
                     }}

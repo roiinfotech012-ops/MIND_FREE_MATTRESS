@@ -110,11 +110,11 @@ export const ProductGallery: React.FC<ProductGalleryProps> = ({
         </button>
 
         {/* The Active Image */}
-        <div className="w-full h-full cursor-zoom-in" onClick={() => setIsZoomed(true)}>
+        <div className="w-full h-full cursor-zoom-in bg-white flex items-center justify-center p-2" onClick={() => setIsZoomed(true)}>
           <img
             src={activeImage.url}
             alt={activeImage.alt || `${productName} view`}
-            className="w-full h-full object-cover object-center transition-all duration-500 ease-out"
+            className="max-w-full max-h-full w-auto h-auto object-contain"
             key={activeImage.id}
           />
         </div>

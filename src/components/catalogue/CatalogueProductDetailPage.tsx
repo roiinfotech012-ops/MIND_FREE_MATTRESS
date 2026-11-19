@@ -211,11 +211,11 @@ export const CatalogueProductDetailPage: React.FC<CatalogueProductDetailPageProp
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-start">
           {/* LEFT: 5-View Interactive Product Gallery (Cols 1-7) */}
           <div className="lg:col-span-7 lg:sticky lg:top-24 space-y-4">
-            <div className="relative rounded-3xl overflow-hidden bg-white border border-[#E2E8F0] shadow-lg group aspect-[4/3] flex items-center justify-center">
+            <div className="relative rounded-3xl overflow-hidden bg-white border border-[#E2E8F0] shadow-lg group aspect-[4/3] flex items-center justify-center p-2">
               <img
                 src={galleryItems[activeImageIdx]?.url}
                 alt={galleryItems[activeImageIdx]?.caption}
-                className="w-full h-full object-contain p-2 bg-white"
+                className="max-w-full max-h-full w-auto h-auto object-contain bg-white"
               />
 
               {/* Top Overlay Badges */}
@@ -264,11 +264,11 @@ export const CatalogueProductDetailPage: React.FC<CatalogueProductDetailPageProp
                         : 'border-[#E2E8F0] opacity-75 hover:opacity-100'
                     }`}
                   >
-                    <div className="aspect-[4/3] w-full overflow-hidden bg-[#F8FAFC]">
+                    <div className="aspect-[4/3] w-full overflow-hidden bg-white flex items-center justify-center p-1">
                       <img
                         src={item.url}
                         alt={item.label}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        className="max-w-full max-h-full w-auto h-auto object-contain"
                       />
                     </div>
                     <div className="p-1.5 text-center bg-white border-t border-[#E2E8F0]">

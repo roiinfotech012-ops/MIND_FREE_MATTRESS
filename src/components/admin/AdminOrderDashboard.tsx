@@ -587,15 +587,15 @@ export const AdminOrderDashboard: React.FC = () => {
     }
   };
 
-  // Preserve 100% Full HD original resolution without blur so uploaded images look crystal-clear in Admin & Storefront
+  // Preserve 100% original uploaded image quality with zero re-compression or blur
   const optimizeImageFileToDataUrl = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onerror = () => reject(new Error('Failed to read image file'));
       reader.onload = () => {
         const rawDataUrl = String(reader.result || '');
-        // Keep 100% untouched original HD image for SVG or files up to 3.5 MB (zero re-compression, zero blur)
-        if (file.type === 'image/svg+xml' || file.size <= 3.5 * 1024 * 1024) {
+        // Return the exact original file Data URL untouched for crisp, zero-blur HD display
+        if (file.type === 'image/svg+xml' || file.size <= 12 * 1024 * 1024) {
           resolve(rawDataUrl);
           return;
         }
@@ -603,7 +603,7 @@ export const AdminOrderDashboard: React.FC = () => {
         img.onerror = () => resolve(rawDataUrl);
         img.onload = () => {
           try {
-            const maxDim = 2400;
+            const maxDim = 2560;
             let width = img.naturalWidth || img.width || 1920;
             let height = img.naturalHeight || img.height || 1080;
             if (width <= maxDim && height <= maxDim) {
@@ -635,7 +635,7 @@ export const AdminOrderDashboard: React.FC = () => {
             }
             ctx.drawImage(img, 0, 0, width, height);
             const outMime = isTransparentCapable ? 'image/webp' : 'image/jpeg';
-            const compressed = canvas.toDataURL(outMime, 0.95);
+            const compressed = canvas.toDataURL(outMime, 0.98);
             resolve(compressed || rawDataUrl);
           } catch {
             resolve(rawDataUrl);
@@ -1445,11 +1445,11 @@ export const AdminOrderDashboard: React.FC = () => {
                         </div>
 
                         {/* Live Banner Image Preview + Upload */}
-                        <div className="relative h-48 sm:h-52 rounded-2xl overflow-hidden border border-[#E2E8F0] bg-[#EAF3FC] flex items-center justify-center">
+                        <div className="relative h-48 sm:h-52 rounded-2xl overflow-hidden border border-[#E2E8F0] bg-[#EAF3FC] flex items-center justify-center p-1.5">
                           <img
                             src={slide.imageJpg}
                             alt={slide.altText}
-                            className="w-full h-full object-contain p-1.5"
+                            className="max-w-full max-h-full w-auto h-auto object-contain"
                           />
                           {slide.imageJpg?.startsWith('data:image/') && (
                             <span className="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-full bg-emerald-600/95 text-white text-[10px] font-bold shadow-xs">
@@ -2868,11 +2868,11 @@ export const AdminOrderDashboard: React.FC = () => {
                                 >
                                   <div>
                                     {/* Image Header with 1-Click Photo Upload */}
-                                    <div className="relative h-52 bg-white border-b border-[#E2E8F0] overflow-hidden flex items-center justify-center">
+                                    <div className="relative h-52 bg-white border-b border-[#E2E8F0] overflow-hidden flex items-center justify-center p-2">
                                       <img
                                         src={displayImg}
                                         alt={m.name}
-                                        className="w-full h-full object-contain p-2"
+                                        className="max-w-full max-h-full w-auto h-auto object-contain"
                                       />
                                       <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-[#0A2E73]/95 text-white text-[10.5px] font-bold shadow-sm">
                                         {m.warrantyMonths}M Warranty
@@ -3632,11 +3632,11 @@ export const AdminOrderDashboard: React.FC = () => {
                                   <span className="font-semibold text-[#0F2952] block">
                                     Primary Hero Image
                                   </span>
-                                  <div className="relative h-44 sm:h-48 rounded-2xl overflow-hidden border border-[#E2E8F0] bg-white flex items-center justify-center">
+                                  <div className="relative h-44 sm:h-48 rounded-2xl overflow-hidden border border-[#E2E8F0] bg-white flex items-center justify-center p-2">
                                     <img
                                       src={model.images.hero}
                                       alt={model.name}
-                                      className="w-full h-full object-contain p-2"
+                                      className="max-w-full max-h-full w-auto h-auto object-contain"
                                     />
                                     <button
                                       type="button"
@@ -3687,14 +3687,14 @@ export const AdminOrderDashboard: React.FC = () => {
                                   <span className="font-semibold text-[#0F2952] block">
                                     Cooling Category Card Image (Optional)
                                   </span>
-                                  <div className="relative h-44 sm:h-48 rounded-2xl overflow-hidden border border-[#E2E8F0] bg-white flex items-center justify-center">
+                                  <div className="relative h-44 sm:h-48 rounded-2xl overflow-hidden border border-[#E2E8F0] bg-white flex items-center justify-center p-2">
                                     <img
                                       src={
                                         model.images.coolingHero ||
                                         model.images.hero
                                       }
                                       alt={`${model.name} Cooling`}
-                                      className="w-full h-full object-contain p-2"
+                                      className="max-w-full max-h-full w-auto h-auto object-contain"
                                     />
                                     <button
                                       type="button"
@@ -3748,11 +3748,11 @@ export const AdminOrderDashboard: React.FC = () => {
                                   <span className="font-semibold text-[#0F2952] block">
                                     Internal Layer Diagram Image
                                   </span>
-                                  <div className="relative h-44 sm:h-48 rounded-2xl overflow-hidden border border-[#E2E8F0] bg-white flex items-center justify-center">
+                                  <div className="relative h-44 sm:h-48 rounded-2xl overflow-hidden border border-[#E2E8F0] bg-white flex items-center justify-center p-2">
                                     <img
                                       src={model.images.layers}
                                       alt={`${model.name} Layers`}
-                                      className="w-full h-full object-contain p-2"
+                                      className="max-w-full max-h-full w-auto h-auto object-contain"
                                     />
                                     <button
                                       type="button"
@@ -4831,11 +4831,11 @@ export const AdminOrderDashboard: React.FC = () => {
                       >
                         <div>
                           {/* Image Header with 1-Click Photo Upload */}
-                          <div className="relative h-52 bg-white border-b border-[#E2E8F0] overflow-hidden flex items-center justify-center">
+                          <div className="relative h-52 bg-white border-b border-[#E2E8F0] overflow-hidden flex items-center justify-center p-2">
                             <img
                               src={p.image}
                               alt={p.name}
-                              className="w-full h-full object-contain p-2"
+                              className="max-w-full max-h-full w-auto h-auto object-contain"
                             />
                             {p.badge && (
                               <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-[#0A2E73]/95 text-white text-[10.5px] font-bold shadow-sm">

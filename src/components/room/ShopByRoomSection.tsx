@@ -381,11 +381,11 @@ export const ShopByRoomSection: React.FC = () => {
                 </div>
 
                 {/* Mattress Studio Cutout / Image */}
-                <div className="mt-1.5 flex-1 min-h-[110px] sm:min-h-0 sm:h-[135px] xl:h-[140px] w-full rounded-lg overflow-hidden bg-white flex items-center justify-center">
+                <div className="mt-1.5 flex-1 min-h-[110px] sm:min-h-0 sm:h-[135px] xl:h-[140px] w-full rounded-lg overflow-hidden bg-white flex items-center justify-center p-1">
                   <img
                     src={activeRoom.product.image}
                     alt={activeRoom.product.name}
-                    className="w-full h-full object-contain p-1"
+                    className="max-w-full max-h-full w-auto h-auto object-contain"
                   />
                 </div>
               </div>

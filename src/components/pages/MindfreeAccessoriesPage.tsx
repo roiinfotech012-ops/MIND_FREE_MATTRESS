@@ -138,11 +138,11 @@ export const MindfreeAccessoriesPage: React.FC = () => {
                 className="bg-white rounded-3xl border border-[#E2E8F0] hover:border-[#E3262E]/50 shadow-xs hover:shadow-[0_16px_40px_rgba(10,46,115,0.08)] transition-all duration-300 flex flex-col sm:flex-row overflow-hidden group"
               >
                 {/* Image */}
-                <div className="relative sm:w-2/5 min-h-[220px] sm:min-h-full bg-[#F8FAFC] overflow-hidden shrink-0">
+                <div className="relative sm:w-2/5 min-h-[220px] sm:min-h-full bg-white overflow-hidden shrink-0 flex items-center justify-center p-2">
                   <img
                     src={item.image}
                     alt={item.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                    className="max-w-full max-h-full w-auto h-auto object-contain"
                     onError={(e) => {
                       (e.currentTarget as HTMLImageElement).src = '/images/type_ortho.png';
                     }}
