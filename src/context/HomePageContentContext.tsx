@@ -1486,11 +1486,7 @@ export const HomePageContentProvider: React.FC<{ children: React.ReactNode }> = 
       if (homeRow && homeRow.content_json && Object.keys(homeRow.content_json).length > 0) {
         const merged = mergeHomePageData(homeRow.content_json as Partial<HomePageCMSData>);
         setHomePageData(merged);
-        try {
-          localStorage.setItem(STORAGE_CACHE_KEY, JSON.stringify(merged));
-        } catch {
-          // ignore
-        }
+        await saveToHdStorage(STORAGE_CACHE_KEY, merged);
       }
 
       const matRow = rows.find((r) => r.section_key === 'mattresses_cms');
@@ -1513,22 +1509,14 @@ export const HomePageContentProvider: React.FC<{ children: React.ReactNode }> = 
           : fallbackLocalMat;
         const mergedMat = mergeMattressesData(rawMat, pgProducts || []);
         setMattressesData(mergedMat);
-        try {
-          localStorage.setItem(MATTRESSES_CACHE_KEY, JSON.stringify(mergedMat));
-        } catch {
-          // ignore
-        }
+        await saveToHdStorage(MATTRESSES_CACHE_KEY, mergedMat);
       }
 
       const pilRow = rows.find((r) => r.section_key === 'pillows_cms');
       if (pilRow && pilRow.content_json && Object.keys(pilRow.content_json).length > 0) {
         const mergedPil = mergePillowsData(pilRow.content_json as Partial<PillowsCMSData>);
         setPillowsData(mergedPil);
-        try {
-          localStorage.setItem(PILLOWS_CACHE_KEY, JSON.stringify(mergedPil));
-        } catch {
-          // ignore
-        }
+        await saveToHdStorage(PILLOWS_CACHE_KEY, mergedPil);
       }
 
       const footerRow = rows.find((r) => r.section_key === 'footer_cms');
@@ -1539,11 +1527,7 @@ export const HomePageContentProvider: React.FC<{ children: React.ReactNode }> = 
       ) {
         const mergedFooter = mergeFooterData(footerRow.content_json as Partial<FooterCMSData>);
         setFooterData(mergedFooter);
-        try {
-          localStorage.setItem(FOOTER_CACHE_KEY, JSON.stringify(mergedFooter));
-        } catch {
-          // ignore
-        }
+        await saveToHdStorage(FOOTER_CACHE_KEY, mergedFooter);
       }
 
       const contactRow = rows.find((r) => r.section_key === 'contact_cms');
@@ -1556,22 +1540,14 @@ export const HomePageContentProvider: React.FC<{ children: React.ReactNode }> = 
           contactRow.content_json as Partial<ContactPageCMSData>
         );
         setContactData(mergedContact);
-        try {
-          localStorage.setItem(CONTACT_CACHE_KEY, JSON.stringify(mergedContact));
-        } catch {
-          // ignore
-        }
+        await saveToHdStorage(CONTACT_CACHE_KEY, mergedContact);
       }
 
       const whyRow = rows.find((r) => r.section_key === 'why_mindfree_cms');
       if (whyRow && whyRow.content_json && Object.keys(whyRow.content_json).length > 0) {
         const mergedWhy = mergeWhyMindfreeData(whyRow.content_json as Partial<WhyMindfreeCMSData>);
         setWhyMindfreeData(mergedWhy);
-        try {
-          localStorage.setItem(WHY_MINDFREE_CACHE_KEY, JSON.stringify(mergedWhy));
-        } catch {
-          // ignore
-        }
+        await saveToHdStorage(WHY_MINDFREE_CACHE_KEY, mergedWhy);
       }
     } catch {
       // fallback to state
@@ -1608,7 +1584,13 @@ export const HomePageContentProvider: React.FC<{ children: React.ReactNode }> = 
     };
     window.addEventListener('focus', handleVisibilityOrFocus);
     document.addEventListener('visibilitychange', handleVisibilityOrFocus);
+    const pollTimer = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        refreshHomePageData();
+      }
+    }, 30000);
     return () => {
+      clearInterval(pollTimer);
       window.removeEventListener('focus', handleVisibilityOrFocus);
       document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
     };
