@@ -37,7 +37,7 @@ export const CatalogueProductDetailPage: React.FC<CatalogueProductDetailPageProp
   const { addToCart, toggleWishlist, isWishlisted } = useCart();
   const { navigateToMattresses, navigateToProduct } = useNavigation();
 
-  // Gallery state
+  // Gallery state (4-View Product Gallery — PDF MRP sheet removed)
   const galleryItems = useMemo(
     () => [
       {
@@ -49,7 +49,7 @@ export const CatalogueProductDetailPage: React.FC<CatalogueProductDetailPageProp
       {
         id: 'layers',
         label: 'Official Layer Diagram',
-        caption: `${product.name} — Extracted PDF Layer Callout & Cross-Section`,
+        caption: `${product.name} — Layer Callout & Cross-Section`,
         url: product.images.layers,
       },
       {
@@ -63,12 +63,6 @@ export const CatalogueProductDetailPage: React.FC<CatalogueProductDetailPageProp
         label: 'Bedroom Suite View',
         caption: `${product.name} — Styled on an Architectural Platform Bed`,
         url: product.images.lifestyle,
-      },
-      {
-        id: 'pdfPage',
-        label: `Source PDF (Page ${product.pageNumber})`,
-        caption: `Official Bed price.pdf Page ${product.pageNumber} — Complete Printed MRP Sheet`,
-        url: product.images.pdfPage,
       },
     ],
     [product]
@@ -250,7 +244,7 @@ export const CatalogueProductDetailPage: React.FC<CatalogueProductDetailPageProp
             </div>
 
             {/* Thumbnail Strip */}
-            <div className="grid grid-cols-5 gap-2.5 sm:gap-3">
+            <div className="grid grid-cols-4 gap-2.5 sm:gap-3">
               {galleryItems.map((item, idx) => {
                 const isSelected = idx === activeImageIdx;
                 return (
