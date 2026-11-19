@@ -1579,7 +1579,7 @@ export const HomePageContentProvider: React.FC<{ children: React.ReactNode }> = 
   }, []);
 
   useEffect(() => {
-    // Hydrate from IndexedDB first (supports 500MB+ of Full-HD images), then check Postgres
+    // Hydrate from IndexedDB first (instant local cache), then always fetch latest shared data from PostgreSQL API
     (async () => {
       const [idbHome, idbMat, idbPil, idbFooter, idbContact, idbWhy] = await Promise.all([
         loadFromHdStorage<Partial<HomePageCMSData>>(STORAGE_CACHE_KEY),
@@ -1597,6 +1597,21 @@ export const HomePageContentProvider: React.FC<{ children: React.ReactNode }> = 
       if (idbWhy) setWhyMindfreeData(mergeWhyMindfreeData(idbWhy));
       await refreshHomePageData();
     })();
+
+    // Auto-refresh from PostgreSQL when a user returns to the browser tab so all users stay synced
+    let lastSyncAt = Date.now();
+    const handleVisibilityOrFocus = () => {
+      if (document.visibilityState === 'visible' && Date.now() - lastSyncAt > 10000) {
+        lastSyncAt = Date.now();
+        refreshHomePageData();
+      }
+    };
+    window.addEventListener('focus', handleVisibilityOrFocus);
+    document.addEventListener('visibilitychange', handleVisibilityOrFocus);
+    return () => {
+      window.removeEventListener('focus', handleVisibilityOrFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
+    };
   }, [refreshHomePageData]);
 
   // Listen for cross-tab localStorage updates so Storefront tabs update immediately when Admin tab saves

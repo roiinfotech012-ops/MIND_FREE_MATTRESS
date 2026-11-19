@@ -45,6 +45,147 @@ const pool = new pg.Pool(
       }
 );
 
+// Auto-initialize PostgreSQL schema on cold start so any fresh cloud DB (Neon, Vercel Postgres, Railway, VPS) works immediately
+let schemaInitPromise = null;
+async function ensureSchemaReady() {
+  if (!schemaInitPromise) {
+    schemaInitPromise = (async () => {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS storage_buckets (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          is_public BOOLEAN DEFAULT TRUE,
+          file_size_limit BIGINT DEFAULT 10485760,
+          description TEXT DEFAULT '',
+          created_at TIMESTAMPTZ DEFAULT NOW(),
+          updated_at TIMESTAMPTZ DEFAULT NOW()
+        );
+        CREATE TABLE IF NOT EXISTS storage_objects (
+          id SERIAL PRIMARY KEY,
+          bucket_id TEXT NOT NULL,
+          file_name TEXT NOT NULL,
+          mime_type TEXT DEFAULT 'image/png',
+          size_bytes BIGINT DEFAULT 0,
+          base64_data TEXT NOT NULL,
+          public_url TEXT NOT NULL,
+          alt_text TEXT DEFAULT '',
+          uploaded_by TEXT DEFAULT 'Mindfree Admin',
+          created_at TIMESTAMPTZ DEFAULT NOW(),
+          UNIQUE(bucket_id, file_name)
+        );
+        CREATE TABLE IF NOT EXISTS products (
+          id TEXT PRIMARY KEY,
+          slug TEXT UNIQUE NOT NULL,
+          name TEXT NOT NULL,
+          tagline TEXT DEFAULT '',
+          categories TEXT[] DEFAULT ARRAY['orthopedic'],
+          top_finish_style TEXT DEFAULT 'Euro Top',
+          warranty_months INT DEFAULT 60,
+          starting_price NUMERIC DEFAULT 12999,
+          mrp_price NUMERIC DEFAULT 14999,
+          hero_image TEXT DEFAULT '/images/products/product-deluxe.jpg',
+          cooling_image TEXT,
+          thickness_options INT[] DEFAULT ARRAY[6, 8],
+          is_active BOOLEAN DEFAULT TRUE,
+          created_at TIMESTAMPTZ DEFAULT NOW(),
+          updated_at TIMESTAMPTZ DEFAULT NOW()
+        );
+        CREATE TABLE IF NOT EXISTS pillows_accessories (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          tagline TEXT DEFAULT '',
+          price NUMERIC DEFAULT 1999,
+          image TEXT DEFAULT '',
+          is_active BOOLEAN DEFAULT TRUE,
+          created_at TIMESTAMPTZ DEFAULT NOW()
+        );
+        CREATE TABLE IF NOT EXISTS orders (
+          order_id TEXT PRIMARY KEY,
+          customer_email TEXT DEFAULT '',
+          customer_phone TEXT DEFAULT '',
+          customer_info JSONB DEFAULT '{}'::jsonb,
+          items JSONB DEFAULT '[]'::jsonb,
+          subtotal NUMERIC DEFAULT 0,
+          total_savings NUMERIC DEFAULT 0,
+          shipping NUMERIC DEFAULT 0,
+          tax NUMERIC DEFAULT 0,
+          total NUMERIC DEFAULT 0,
+          payment_method TEXT DEFAULT 'upi',
+          payment_status TEXT DEFAULT 'Paid',
+          order_status TEXT DEFAULT 'Confirmed',
+          tracking_number TEXT DEFAULT '',
+          courier_partner TEXT DEFAULT '',
+          estimated_delivery TEXT DEFAULT '',
+          status_history JSONB DEFAULT '[]'::jsonb,
+          created_at TIMESTAMPTZ DEFAULT NOW(),
+          updated_at TIMESTAMPTZ DEFAULT NOW()
+        );
+        CREATE TABLE IF NOT EXISTS customers (
+          id SERIAL PRIMARY KEY,
+          email TEXT UNIQUE,
+          full_name TEXT DEFAULT '',
+          phone TEXT DEFAULT '',
+          created_at TIMESTAMPTZ DEFAULT NOW()
+        );
+        CREATE TABLE IF NOT EXISTS reviews (
+          id TEXT PRIMARY KEY,
+          customer_name TEXT NOT NULL,
+          rating INT DEFAULT 5,
+          review_text TEXT,
+          review_date TEXT DEFAULT '',
+          is_verified BOOLEAN DEFAULT TRUE,
+          created_at TIMESTAMPTZ DEFAULT NOW()
+        );
+        CREATE TABLE IF NOT EXISTS site_content (
+          id SERIAL PRIMARY KEY,
+          section_key TEXT UNIQUE NOT NULL,
+          title TEXT NOT NULL,
+          subtitle TEXT DEFAULT '',
+          badge_text TEXT DEFAULT '',
+          cta_text TEXT DEFAULT '',
+          cta_link TEXT DEFAULT '',
+          image_url TEXT DEFAULT '',
+          content_json JSONB DEFAULT '{}'::jsonb,
+          updated_at TIMESTAMPTZ DEFAULT NOW()
+        );
+        CREATE TABLE IF NOT EXISTS newsletter_subscribers (
+          id SERIAL PRIMARY KEY,
+          email TEXT UNIQUE NOT NULL,
+          source TEXT DEFAULT 'footer',
+          subscribed_at TIMESTAMPTZ DEFAULT NOW()
+        );
+        CREATE TABLE IF NOT EXISTS contact_inquiries (
+          id SERIAL PRIMARY KEY,
+          full_name TEXT NOT NULL,
+          email TEXT NOT NULL,
+          phone TEXT DEFAULT '',
+          subject TEXT DEFAULT 'General Concierge Inquiry',
+          message TEXT NOT NULL,
+          created_at TIMESTAMPTZ DEFAULT NOW()
+        );
+      `);
+    })().catch((err) => {
+      schemaInitPromise = null;
+      throw err;
+    });
+  }
+  return schemaInitPromise;
+}
+
+app.use('/api', async (req, res, next) => {
+  if (!req.path.startsWith('/storage/') || req.path === '/storage/buckets' || req.path === '/storage/objects' || req.path === '/storage/upload') {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+  }
+  try {
+    await ensureSchemaReady();
+  } catch (err) {
+    console.warn('Database schema init warning:', err.message);
+  }
+  next();
+});
+
 // 1. HEALTH & DATABASE METRICS ENDPOINT
 app.get('/api/health', async (_req, res) => {
   try {

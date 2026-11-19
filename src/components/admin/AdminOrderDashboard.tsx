@@ -587,15 +587,15 @@ export const AdminOrderDashboard: React.FC = () => {
     }
   };
 
-  // Preserve 100% original uploaded image quality with zero re-compression or blur
+  // Preserve 100% original uploaded image quality while keeping single-file payload within serverless 4.5MB limit
   const optimizeImageFileToDataUrl = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onerror = () => reject(new Error('Failed to read image file'));
       reader.onload = () => {
         const rawDataUrl = String(reader.result || '');
-        // Return the exact original file Data URL untouched for crisp, zero-blur HD display
-        if (file.type === 'image/svg+xml' || file.size <= 12 * 1024 * 1024) {
+        // Return the exact original file Data URL untouched up to 3.0 MB (zero re-compression, zero blur)
+        if (file.type === 'image/svg+xml' || file.size <= 3.0 * 1024 * 1024) {
           resolve(rawDataUrl);
           return;
         }
@@ -603,19 +603,17 @@ export const AdminOrderDashboard: React.FC = () => {
         img.onerror = () => resolve(rawDataUrl);
         img.onload = () => {
           try {
-            const maxDim = 2560;
+            const maxDim = 2200;
             let width = img.naturalWidth || img.width || 1920;
             let height = img.naturalHeight || img.height || 1080;
-            if (width <= maxDim && height <= maxDim) {
-              resolve(rawDataUrl);
-              return;
-            }
-            if (width >= height) {
-              height = Math.round((height * maxDim) / width);
-              width = maxDim;
-            } else {
-              width = Math.round((width * maxDim) / height);
-              height = maxDim;
+            if (width > maxDim || height > maxDim) {
+              if (width >= height) {
+                height = Math.round((height * maxDim) / width);
+                width = maxDim;
+              } else {
+                width = Math.round((width * maxDim) / height);
+                height = maxDim;
+              }
             }
             const canvas = document.createElement('canvas');
             canvas.width = width;
@@ -635,7 +633,7 @@ export const AdminOrderDashboard: React.FC = () => {
             }
             ctx.drawImage(img, 0, 0, width, height);
             const outMime = isTransparentCapable ? 'image/webp' : 'image/jpeg';
-            const compressed = canvas.toDataURL(outMime, 0.98);
+            const compressed = canvas.toDataURL(outMime, 0.92);
             resolve(compressed || rawDataUrl);
           } catch {
             resolve(rawDataUrl);
@@ -660,7 +658,7 @@ export const AdminOrderDashboard: React.FC = () => {
     return fallback;
   };
 
-  // Upload an image and immediately assign & publish it to the field and storefront
+  // Upload an image to PostgreSQL storage (so all browsers & users see it) and immediately assign & publish it
   const handleHomeImageUpload = (
     bucketId: string,
     fieldKey: string,
@@ -676,23 +674,29 @@ export const AdminOrderDashboard: React.FC = () => {
       setUploadingFieldKey(fieldKey);
       try {
         const optimizedDataUrl = await optimizeImageFileToDataUrl(file);
-        // 1. Immediately update the field and trigger auto-save so the image updates right away in Admin & Storefront
-        onUrlReady(optimizedDataUrl);
-        setPendingUploadAutoSave(true);
-        showToast(`Image "${file.name}" uploaded and updated live!`);
+        const uniqueFileName = `${fieldKey.replace(/[^a-zA-Z0-9_-]/g, '-')}-${Date.now()}-${file.name}`;
 
-        // 2. Also persist in background storage table if backend is reachable
-        uploadImageToPgStorage({
+        // 1. Upload to PostgreSQL storage first so we store a lightweight /api/storage/... URL that works across ALL browsers & devices
+        const uploaded = await uploadImageToPgStorage({
           bucket_id: bucketId,
-          file_name: file.name,
+          file_name: uniqueFileName,
           mime_type: file.type || 'image/jpeg',
           base64_data: optimizedDataUrl,
           alt_text: altText || file.name,
-        }).then((uploaded) => {
-          if (uploaded) {
-            syncAllFromPostgres();
-          }
         });
+
+        const finalUrl = uploaded?.public_url || optimizedDataUrl;
+        onUrlReady(finalUrl);
+        setPendingUploadAutoSave(true);
+
+        if (uploaded?.public_url) {
+          fetchStorageObjectsFromPg().then((objs) => {
+            if (objs) setStorageObjects(objs);
+          });
+          showToast(`Image "${file.name}" uploaded to server and published live for all users!`);
+        } else {
+          showToast(`Image "${file.name}" updated! (Connect DATABASE_URL on host to sync across all browsers)`);
+        }
       } catch {
         showToast('Could not read the selected image file.');
       } finally {

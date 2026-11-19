@@ -81,7 +81,7 @@ const API_BASE = '/api';
 
 export async function fetchPgHealth(): Promise<PgHealthResponse | null> {
   try {
-    const res = await fetch(`${API_BASE}/health`);
+    const res = await fetch(`${API_BASE}/health`, { cache: 'no-store' });
     if (!res.ok) return null;
     return await res.json();
   } catch {
@@ -91,7 +91,7 @@ export async function fetchPgHealth(): Promise<PgHealthResponse | null> {
 
 export async function fetchOrdersFromPg(): Promise<OrderRecord[] | null> {
   try {
-    const res = await fetch(`${API_BASE}/orders`);
+    const res = await fetch(`${API_BASE}/orders`, { cache: 'no-store' });
     if (!res.ok) return null;
     const data: OrderRecord[] = await res.json();
     if (Array.isArray(data) && data.length > 0 && typeof window !== 'undefined') {
@@ -153,7 +153,7 @@ export async function updateOrderStatusInPg(
 
 export async function fetchProductsFromPg(): Promise<PgProductRecord[]> {
   try {
-    const res = await fetch(`${API_BASE}/products`);
+    const res = await fetch(`${API_BASE}/products`, { cache: 'no-store' });
     if (!res.ok) return [];
     return await res.json();
   } catch {
@@ -260,7 +260,7 @@ export async function deleteStorageObjectFromPg(id: number): Promise<boolean> {
 
 export async function fetchSiteContentFromPg(): Promise<PgSiteContentRecord[]> {
   try {
-    const res = await fetch(`${API_BASE}/content`);
+    const res = await fetch(`${API_BASE}/content`, { cache: 'no-store' });
     if (!res.ok) return [];
     return await res.json();
   } catch {
